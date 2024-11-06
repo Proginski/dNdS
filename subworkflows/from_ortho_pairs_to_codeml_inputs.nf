@@ -9,6 +9,7 @@ include { CHECK_FILES                 } from '../modules/check_files.nf'
 include { NAMES_TO_PHYLIP             } from '../modules/names_to_phylip.nf'
 include { TREE_FOR_CODEML             } from '../modules/tree_for_codeml.nf'
 include { GET_SEQUENCES               } from '../modules/get_sequences.nf'
+include { GET_ALIGNMENT_FASTAS        } from '../modules/get_alignment_fastas.nf'
 include { ALIGN_FOR_CODEML            } from '../modules/align_for_codeml.nf'
 
 /*
@@ -59,10 +60,11 @@ workflow FROM_ORTHO_PAIRS_TO_CODEML_INPUTS {
 		.splitText()
 		.map{it -> it.trim()}
 
-	ORFs_ch = ORFs_ch.buffer(size: params.alignment_batch_size, remainder: true)
+	ORFs_ch = ORFs_ch.collectFile(name: 'orfs.txt', newLine: true).splitText( by: 100, file: "orf_subset.txt")
+	// ORFs_ch = ORFs_ch.buffer(size: params.alignment_batch_size, remainder: true)
 
 	// Produce of proper alignment file for one ORF and its orthologs.
-	ALIGN_FOR_CODEML(
+	GET_ALIGNMENT_FASTAS(
 					 A_fna,
 					 B_fnas.collect(),
 					 ortho_ch.collect(),
@@ -70,6 +72,9 @@ workflow FROM_ORTHO_PAIRS_TO_CODEML_INPUTS {
 					 TREE_FOR_CODEML.out.first(),
 					 ORFs_ch
 					)
+
+	// Produce of proper alignment file for each ORF and its orthologs.
+	ALIGN_FOR_CODEML( GET_ALIGNMENT_FASTAS.out.orthologs_fnas )
 
 	// OUTPUT
 	emit : ALIGN_FOR_CODEML.out
