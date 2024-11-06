@@ -1,0 +1,190 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "https://raw.githubusercontent.com/XXX/master/nextflow_schema.json",
+    "title": "dnds pipeline parameters",
+    "description": "Perfoms a dN/dS analysis using CODEML from PAML package.",
+    "type": "object",
+    "definitions": {
+        "input_output_options": {
+            "title": "Input/output options",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "description": "Define where the pipeline should find input data and save output data.",
+            "required": [
+                "outdir"
+            ],
+            "properties": {
+                "outdir": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
+                    "fa_icon": "fas fa-folder-open"
+                }
+            }
+        },
+        "required_input_values": {
+            "title": "Required input values",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "A": {
+                    "type": "string",
+                    "description": "The main/query/focal NT FASTA file.",
+                    "format": "file-path",
+                    "fa_icon": "fas fa-file"
+                },
+                "B": {
+                    "type": "string",
+                    "description": "The other/subject/neighbor NT FASTA file(s). May contain A (ignored). WARNING : use quotes if using wildcards.",
+                    "format": "directory-path",
+                    "fa_icon": "fas fa-copy"
+                },
+                "tree": {
+                    "type": "string",
+                    "description": "The newick tree with A and B(s).",
+                    "format": "file-path",
+                    "fa_icon": "fas fa-tree"
+                },
+                "ctl_file": {
+                    "type": "string",
+                    "description": "The codeml control file.",
+                    "format": "file-path",
+                    "fa_icon": "fas fa-dharmachakra"
+                }
+            },
+            "required": [
+                "A",
+                "B",
+                "tree",
+                "ctl_file"
+            ]
+        },
+        "other_important_parameters": {
+            "title": "Other important parameters",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "includeA": {
+                    "type": "boolean",
+                    "hidden": true,
+                    "description": "Whether or not to compute A vs A RBH (disabled by default because computationally expensive).",
+                    "enum": [
+                        false
+                    ]
+                },
+                "fasta_type": {
+                    "type": "string",
+                    "default": "NT",
+                    "hidden": true,
+                    "description": "The type of the input sequences (AA or NT).",
+                    "enum": [
+                        "NT"
+                    ]
+                },
+                "A_seqlist": {
+                    "type": "string",
+                    "description": "The list of sequences from A FASTA to process with CODEML.",
+                    "format": "file-path"
+                },
+                "ortho": {
+                    "type": "string",
+                    "description": "The precomputed pairs of orthologs. One file per B FASTA file. Must be named as follow : '${A_name}_vs_${B_name}_orthologs.tsv'. Tab separated. First column : A id, second column : B id. WARNING : use quotes if using wildcards. Also accepted : OrthoFinder files of type 'OrthoFinder/Results_<DATE>/Orthologues/Orthologues_<A>/<A>__v__<B>.tsv' (will automatically be converted to the required format).",
+                    "format": "file-path"
+                },
+                "style": {
+                    "type": "string",
+                    "default": "one_omega",
+                    "description": "Controls how to produce the summary output file.",
+                    "enum": [
+                        "one_omega",
+                        "lysin"
+                    ]
+                },
+                "alignment_batch_size": {
+                    "type": "integer",
+                    "default": 10,
+                    "description": "The number of sequences to align in a single batch."
+                },
+                "help": {
+                    "type": "boolean",
+                    "description": "Throws this page."
+                }
+            }
+        },
+        "institutional_config_options": {
+            "title": "Institutional config options",
+            "type": "object",
+            "fa_icon": "fas fa-university",
+            "description": "Parameters used to describe centralised config profiles. These should not be edited.",
+            "help_text": "The centralised nf-core configuration profiles use a handful of pipeline parameters to describe themselves. This information is then printed to the Nextflow log when you run a pipeline. You should not need to change these values when you run a pipeline.",
+            "properties": {
+                "config_profile_name": {
+                    "type": "string",
+                    "description": "Institutional config name.",
+                    "hidden": true,
+                    "fa_icon": "fas fa-users-cog"
+                },
+                "config_profile_description": {
+                    "type": "string",
+                    "description": "Institutional config description.",
+                    "hidden": true,
+                    "fa_icon": "fas fa-users-cog"
+                }
+            }
+        },
+        "max_job_request_options": {
+            "title": "Max job request options",
+            "type": "object",
+            "fa_icon": "fab fa-acquisitions-incorporated",
+            "description": "Set the top limit for requested resources for any single job.",
+            "help_text": "If you are running on a smaller system, a pipeline step requesting more resources than are available may cause the Nextflow to stop the run with an error. These options allow you to cap the maximum resources requested by any single job so that the pipeline will run on your system.\n\nNote that you can not _increase_ the resources requested by any job using these options. For that you will need your own configuration file. See [the nf-core website](https://nf-co.re/usage/configuration) for details.",
+            "properties": {
+                "max_cpus": {
+                    "type": "integer",
+                    "description": "Maximum number of CPUs that can be requested for any single job.",
+                    "default": 16,
+                    "fa_icon": "fas fa-microchip",
+                    "hidden": true,
+                    "help_text": "Use to set an upper-limit for the CPU requirement for each process. Should be an integer e.g. `--max_cpus 1`"
+                },
+                "max_memory": {
+                    "type": "string",
+                    "description": "Maximum amount of memory that can be requested for any single job.",
+                    "default": "128.GB",
+                    "fa_icon": "fas fa-memory",
+                    "pattern": "^\\d+(\\.\\d+)?\\.?\\s*(K|M|G|T)?B$",
+                    "hidden": true,
+                    "help_text": "Use to set an upper-limit for the memory requirement for each process. Should be a string in the format integer-unit e.g. `--max_memory '8.GB'`"
+                },
+                "max_time": {
+                    "type": "string",
+                    "description": "Maximum amount of time that can be requested for any single job.",
+                    "default": "240.h",
+                    "fa_icon": "far fa-clock",
+                    "pattern": "^(\\d+\\.?\\s*(s|m|h|d|day)\\s*)+$",
+                    "hidden": true,
+                    "help_text": "Use to set an upper-limit for the time requirement for each process. Should be a string in the format integer-unit e.g. `--max_time '2.h'`"
+                }
+            }
+        }
+    },
+    "allOf": [
+        {
+            "$ref": "#/definitions/input_output_options"
+        },
+        {
+            "$ref": "#/definitions/required_input_values"
+        },
+        {
+            "$ref": "#/definitions/other_important_parameters"
+        },
+        {
+            "$ref": "#/definitions/institutional_config_options"
+        },
+        {
+            "$ref": "#/definitions/max_job_request_options"
+        }
+    ]
+}
