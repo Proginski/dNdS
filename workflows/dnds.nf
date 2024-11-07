@@ -71,10 +71,12 @@ workflow DNDS {
 	// Produce of proper alignment file for each ORF and its orthologs.
 	FROM_ORTHO_PAIRS_TO_CODEML_INPUTS( ortho_ch )
 
-	// 	input:
-	//		path ctl_file
-	//		tuple val(orf), path(tree), path(aln
+	// Provided a channel of paths with both tress and alignments, but ensuring matching tree and alignment are send to the same task.
 	codeml_inputs = FROM_ORTHO_PAIRS_TO_CODEML_INPUTS.out
+		.map( tuple -> [ tuple[1], tuple[2] ] ) // only keep tree and aln
+		.buffer( size: params.codeml_batch_size, remainder: true )
+		.map{ tuple -> tuple.flatten() }
+		.view()
 	
 	// Use the deisred codeml config file.
 	if (params.style == "branch_models"){

@@ -60,7 +60,7 @@ workflow FROM_ORTHO_PAIRS_TO_CODEML_INPUTS {
 		.splitText()
 		.map{it -> it.trim()}
 
-	ORFs_ch = ORFs_ch.collectFile(name: 'orfs.txt', newLine: true).splitText( by: params.batch_size, file: "orf_subset.txt")
+	ORFs_ch = ORFs_ch.collectFile(name: 'orfs.txt', newLine: true).splitText( by: params.alignment_batch_size, file: "orf_subset.txt")
 
 	// Produce of proper alignment file for one ORF and its orthologs.
 	GET_ALIGNMENT_FASTAS(

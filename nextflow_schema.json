@@ -102,10 +102,15 @@
                         "lysin"
                     ]
                 },
-                "batch_size": {
+                "alignment_batch_size": {
+                    "type": "integer",
+                    "default": 100,
+                    "description": "The number of sequences to align in a single batch."
+                },
+                "codeml_batch_size": {
                     "type": "integer",
                     "default": 10,
-                    "description": "The number of sequences to align in a single batch."
+                    "description": "The number of sequences to codeml in a single batch."
                 },
                 "help": {
                     "type": "boolean",
