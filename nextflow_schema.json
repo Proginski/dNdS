@@ -102,7 +102,7 @@
                         "lysin"
                     ]
                 },
-                "alignment_batch_size": {
+                "batch_size": {
                     "type": "integer",
                     "default": 10,
                     "description": "The number of sequences to align in a single batch."

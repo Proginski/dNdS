@@ -60,8 +60,7 @@ workflow FROM_ORTHO_PAIRS_TO_CODEML_INPUTS {
 		.splitText()
 		.map{it -> it.trim()}
 
-	ORFs_ch = ORFs_ch.collectFile(name: 'orfs.txt', newLine: true).splitText( by: 100, file: "orf_subset.txt")
-	// ORFs_ch = ORFs_ch.buffer(size: params.alignment_batch_size, remainder: true)
+	ORFs_ch = ORFs_ch.collectFile(name: 'orfs.txt', newLine: true).splitText( by: params.batch_size, file: "orf_subset.txt")
 
 	// Produce of proper alignment file for one ORF and its orthologs.
 	GET_ALIGNMENT_FASTAS(
@@ -76,6 +75,19 @@ workflow FROM_ORTHO_PAIRS_TO_CODEML_INPUTS {
 	// Produce of proper alignment file for each ORF and its orthologs.
 	ALIGN_FOR_CODEML( GET_ALIGNMENT_FASTAS.out.orthologs_fnas )
 
+	// Format the output for dnds.nf (codeml part) 
+	//		tuple val(orf), path(tree), path(aln)
+	nwk_with_orf = GET_ALIGNMENT_FASTAS.out.newicks
+		.flatten()
+		.map{ nwk -> [ nwk.baseName, nwk ] }
+
+	aln_with_orf = ALIGN_FOR_CODEML.out
+		.flatten()
+		.map{ aln -> [ aln.name.toString().split('_for_codeml.aln')[0], aln ] }
+
+	codeml_inputs = nwk_with_orf
+		.combine(aln_with_orf, by: 0)
+
 	// OUTPUT
-	emit : ALIGN_FOR_CODEML.out
+	emit : codeml_inputs
 }

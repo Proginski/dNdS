@@ -26,7 +26,7 @@ process CODEML_1OMEGA_VS_2OMEGA {
 		echo \$ctl
 
 		# Create a codeml control file for the alignment
-		sed "s~__ALN__~${orf}.aln~ ; s~__NWK__~${orf}.nwk~ ; s~__OUT__~${orf}_\${ctl}.out~" ${projectDir}/ctl/\${ctl}.ctl > ${orf}_\${ctl}.ctl
+		sed "s~__ALN__~${aln}~ ; s~__NWK__~${orf}.nwk~ ; s~__OUT__~${orf}_\${ctl}.out~" ${projectDir}/ctl/\${ctl}.ctl > ${orf}_\${ctl}.ctl
 
 		# run codeml
 		codeml ${orf}_\${ctl}.ctl
@@ -56,7 +56,7 @@ process CODEML_1OMEGA_VS_2OMEGA {
 			echo \$ctl
 
 			# Create a codeml control file for the alignment
-			sed "s~__ALN__~${orf}.aln~ ; s~__NWK__~${orf}_2omega_\${i}.nwk~ ; s~__OUT__~${orf}_\${ctl}_\${i}.out~ ; s~__TREE__~\$tree_string~" ${projectDir}/ctl/\${ctl}.ctl > ${orf}_\${ctl}_\${i}.ctl
+			sed "s~__ALN__~${aln}~ ; s~__NWK__~${orf}_2omega_\${i}.nwk~ ; s~__OUT__~${orf}_\${ctl}_\${i}.out~ ; s~__TREE__~\$tree_string~" ${projectDir}/ctl/\${ctl}.ctl > ${orf}_\${ctl}_\${i}.ctl
 
 			# run codeml
 			codeml ${orf}_\${ctl}_\${i}.ctl
@@ -70,7 +70,7 @@ process CODEML_1OMEGA_VS_2OMEGA {
 	echo "free omega"
 
 	# Create a codeml control file for the alignment
-	sed "s~__ALN__~${orf}.aln~ ; s~__NWK__~${orf}.nwk~ ; s~__OUT__~${orf}_free_omega.out~" ${projectDir}/ctl/free_omega.ctl > ${orf}_free_omega.ctl
+	sed "s~__ALN__~${aln}~ ; s~__NWK__~${orf}.nwk~ ; s~__OUT__~${orf}_free_omega.out~" ${projectDir}/ctl/free_omega.ctl > ${orf}_free_omega.ctl
 
 	# run codeml
 	codeml ${orf}_free_omega.ctl

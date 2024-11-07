@@ -70,28 +70,11 @@ workflow DNDS {
 
 	// Produce of proper alignment file for each ORF and its orthologs.
 	FROM_ORTHO_PAIRS_TO_CODEML_INPUTS( ortho_ch )
+
+	// 	input:
+	//		path ctl_file
+	//		tuple val(orf), path(tree), path(aln
 	codeml_inputs = FROM_ORTHO_PAIRS_TO_CODEML_INPUTS.out
-
-	// // NEW
-	// // Count the total number of inputs
-    // total_count = codeml_inputs.count()
-
-    // // Calculate the chunk size
-    // chunk_size = (total_count / 100).ceil()
-
-    // // Buffer the inputs into chunks
-    // codeml_input_chunks = codeml_inputs
-    //     .buffer(size: chunk_size)
-	// // Use the deisred codeml config file.
-	// if (params.style == "branch_models"){
-	// 	// CODEML_1OMEGA_FIXED1_VS_1OMEGA(
-	// 	CODEML_1OMEGA_VS_2OMEGA(
-	// 		file(params.ctl_file),
-	// 		codeml_input_chunks
-	// 	)
-	// }
-
-	// // NEW END
 	
 	// Use the deisred codeml config file.
 	if (params.style == "branch_models"){
