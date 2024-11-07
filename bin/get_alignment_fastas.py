@@ -7,6 +7,10 @@ import copy
 from Bio import SeqIO, Phylo
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import sys
+import logging
+
+logging.basicConfig(level=logging.WARNING)
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Build FASTA files with orthologs for each entry in fna_a.")
@@ -20,20 +24,27 @@ def parse_arguments():
 def load_sequences(fasta_file):
     return {record.id: record for record in SeqIO.parse(fasta_file, "fasta")}
 
-def load_orthologs(ortho_files):
-    orthologs = defaultdict(set)
+def load_orthologs(ortho_files, ortho_files_to_names):
+    orthologs = defaultdict(dict)
     ortholog_set = set()
     for ortho_file in ortho_files:
+        neighbor = ortho_files_to_names[ortho_file]
         with open(ortho_file, 'r') as f:
             for line in f:
                 cols = line.strip().split('\t')
-                orthologs[cols[0]].add(cols[1])
+                orthologs[cols[0]][neighbor] = cols[1]
                 ortholog_set.add(cols[0])
     return orthologs, ortholog_set
 
-def get_phylip_names(filepath, name_mapping_file):
+def get_phylip_names(filepath, name_mapping_file, type):
+
     basename = os.path.basename(filepath)
     raw_name = os.path.splitext(basename)[0]
+
+    if type == 'ortho_file':
+        # ex : ortho_pairs/Pfal_iORF_vs_Plasmodium_sp._DRC_iORF_orthologs.tsv
+        raw_name = raw_name.split('_vs_')[1]
+        raw_name = raw_name.split('_orthologs')[0]
 
     with open(name_mapping_file, 'r') as f:
         for line in f:
@@ -54,34 +65,41 @@ def extract_subtree(tree, leaf_names):
 
     return subtree
 
-def process_entry(entry_id, entry_seq, focal_name, orthologs, neighbor_seqs, neighbor_names, tree):
-    if entry_id in orthologs:
-        output_fasta = f"{entry_id}_n_orthologs.fna"
-        output_tree = f"{entry_id}.nwk"
-        with open(output_fasta, 'w') as out_f:
-            # Write the focal sequence with the FASTA file name in the header
-            entry_seq.id = f"{focal_name}"
-            entry_seq.description = ""
-            entry_seq.seq = entry_seq.seq[:-3] # Remove the terminal stop codon
-            linear_seq = str(entry_seq.seq)
-            out_f.write(f">{entry_seq.id}\n{linear_seq}\n")
+def process_entry(entry_id, entry_seq, focal_name, orthologs, neighbor_seqs, tree):
+    output_fasta = f"{entry_id}_n_orthologs.fna"
+    output_tree = f"{entry_id}.nwk"
+    
+    sequences = {}
+    ortholog_names = {focal_name} # for the tree
 
-            # Write the ortholog sequences with the FASTA file name in the header
-            ortholog_names = {focal_name}
-            for ortho_id in orthologs[entry_id]:
-                for neighbor_fasta, seqs in neighbor_seqs.items():
-                    if ortho_id in seqs:
-                        seq = seqs[ortho_id]
-                        seq.id = f"{neighbor_names[neighbor_fasta]}"
-                        seq.description = ""
-                        seq.seq = seq.seq[:-3] # Remove the terminal stop codon
-                        linear_seq = str(seq.seq)
-                        out_f.write(f">{seq.id}\n{linear_seq}\n")
-                        ortholog_names.add(seq.id)
-
-        # Extract the subset of the tree
-        subset_tree = extract_subtree(tree, ortholog_names)
-        Phylo.write(subset_tree, output_tree, "newick")
+    # Add the focal sequence
+    sequences[focal_name] = str(entry_seq.seq[:-3]) # Remove the terminal stop codon
+    
+    # Add the ortholog sequences
+    for neighbor in orthologs[entry_id]:
+        ortho_id = orthologs[entry_id][neighbor]
+        try:
+            seq = neighbor_seqs[neighbor][ortho_id]
+            seq.seq = seq.seq[:-3]
+            sequences[neighbor] = str(seq.seq)
+            ortholog_names.add(neighbor)
+        except KeyError:
+            logging.warning(f"Entry ID {ortho_id} not found in the fasta of {neighbor}.")
+            sys.exit(1)        
+    
+    # Check if all sequences are identical
+    if len(set(sequences.values())) == 1:
+        logging.warning("All sequences in the output FASTA are identical. The file will not be written.")
+        return
+    
+    # Write the FASTA file
+    with open(output_fasta, 'w') as out_f:
+        for header, sequence in sequences.items():
+            out_f.write(f">{header}\n{sequence}\n")
+    
+    # Extract the subset of the tree
+    subset_tree = extract_subtree(tree, ortholog_names)
+    Phylo.write(subset_tree, output_tree, "newick")
 
 def main():
     print("get_alignment_fastas.py\n")
@@ -92,10 +110,13 @@ def main():
     args = parse_arguments()
 
     # Compute the basename of the focal FASTA file without the last extension
-    focal_name = get_phylip_names(args.fna_a, args.name_mapping)
+    focal_name = get_phylip_names(args.fna_a, args.name_mapping, 'fasta')
 
-    # Compute the basenames of the neighbor FASTA files without the last extension
-    neighbor_names = {fasta: get_phylip_names(fasta, args.name_mapping) for fasta in args.fna_b}
+    # Compute the PHYLIP names for the neighbor FASTA files
+    neighbor_fasta_to_names = {fasta: get_phylip_names(fasta, args.name_mapping, 'fasta') for fasta in args.fna_b}
+
+    # Compute the PHYLIP names for the ortholog files
+    ortho_files_to_names = {ortho: get_phylip_names(ortho, args.name_mapping, 'ortho_file') for ortho in args.ortho}
 
     # Filter out non-FASTA files
     fasta_files = [f for f in [args.fna_a] + args.fna_b if f.endswith(('.fna', '.fasta', '.fa'))]
@@ -115,7 +136,8 @@ def main():
                 if fasta == args.fna_a:
                     focal_seqs = sequences
                 else:
-                    neighbor_seqs[fasta] = sequences
+                    neighbor = neighbor_fasta_to_names[fasta]
+                    neighbor_seqs[neighbor] = sequences
             except Exception as exc:
                 print(f"{fasta} generated an exception: {exc}")
 
@@ -123,7 +145,7 @@ def main():
 
     # Load orthologs from ortho files
     print("Loading orthologs...")
-    orthologs, ortholog_set = load_orthologs(args.ortho)
+    orthologs, ortholog_set = load_orthologs(args.ortho, ortho_files_to_names)
     print("Orthologs loaded")
 
     # Load the input tree
@@ -139,9 +161,14 @@ def main():
 
     with ThreadPoolExecutor(max_workers=num_cpus) as executor:
         futures = []
-        for entry_id, entry_seq in focal_seqs.items():
-            if entry_id in ortholog_set:
-                futures.append(executor.submit(process_entry, entry_id, entry_seq, focal_name, orthologs, neighbor_seqs, neighbor_names, tree))
+        for entry_id in ortholog_set:
+            try:
+                entry_seq = focal_seqs[entry_id]
+                # Your existing code to process entry_seq
+            except KeyError:
+                logging.warning(f"Entry ID {entry_id} not found in {args.fna_a}.")
+                sys.exit(1)
+            futures.append(executor.submit(process_entry, entry_id, entry_seq, focal_name, orthologs, neighbor_seqs, tree))
 
         for future in as_completed(futures):
             future.result()
