@@ -33,7 +33,7 @@ process GET_ALIGNMENT_FASTAS {
 	done
 
     # Then,
-	get_alignment_fastas.py --fna_a $A_fna --fna_b ${B_fnas} --ortho ${ortho_pairs_tsv} --name_mapping $phylip_names --tree $tree
+	get_alignment_fastas.py --fna_a $A_fna --fna_b ${B_fnas} --ortho ${ortho_pairs_tsv} --output ortho_for_alignment.tsv #--name_mapping $phylip_names --tree $tree
 	"""
 
 }
