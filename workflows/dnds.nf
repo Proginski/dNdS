@@ -76,7 +76,6 @@ workflow DNDS {
 		.map( tuple -> [ tuple[1], tuple[2] ] ) // only keep tree and aln
 		.buffer( size: params.codeml_batch_size, remainder: true )
 		.map{ tuple -> tuple.flatten() }
-		.view()
 	
 	// Use the deisred codeml config file.
 	if (params.style == "branch_models"){

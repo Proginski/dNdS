@@ -60,7 +60,7 @@ workflow FROM_ORTHO_PAIRS_TO_CODEML_INPUTS {
 		.splitText()
 		.map{it -> it.trim()}
 
-	ORFs_ch = ORFs_ch.collectFile(name: 'orfs.txt', newLine: true).splitText( by: params.alignment_batch_size, file: "orf_subset.txt")
+	ORFs_ch = ORFs_ch.collectFile(name: 'orfs.txt', newLine: true).splitText( by: params.fasta_batch_size, file: "orf_subset.txt")
 
 	// Produce of proper alignment file for one ORF and its orthologs.
 	GET_ALIGNMENT_FASTAS(
@@ -73,7 +73,10 @@ workflow FROM_ORTHO_PAIRS_TO_CODEML_INPUTS {
 					)
 
 	// Produce of proper alignment file for each ORF and its orthologs.
-	ALIGN_FOR_CODEML( GET_ALIGNMENT_FASTAS.out.orthologs_fnas )
+	ALIGN_FOR_CODEML( 
+		GET_ALIGNMENT_FASTAS.out.orthologs_fnas
+			.buffer( size: params.alignment_batch_size, remainder: true )
+	)
 
 	// Format the output for dnds.nf (codeml part) 
 	//		tuple val(orf), path(tree), path(aln)

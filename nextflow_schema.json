@@ -102,6 +102,11 @@
                         "lysin"
                     ]
                 },
+                "fasta_batch_size": {
+                    "type": "integer",
+                    "default": 10000,
+                    "description": "The number fasta files to prepare for alignment in a single batch."
+                },
                 "alignment_batch_size": {
                     "type": "integer",
                     "default": 100,
