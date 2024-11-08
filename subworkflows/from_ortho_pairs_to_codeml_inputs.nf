@@ -75,6 +75,7 @@ workflow FROM_ORTHO_PAIRS_TO_CODEML_INPUTS {
 	// Produce of proper alignment file for each ORF and its orthologs.
 	ALIGN_FOR_CODEML( 
 		GET_ALIGNMENT_FASTAS.out.orthologs_fnas
+			.flatten()
 			.buffer( size: params.alignment_batch_size, remainder: true )
 	)
 
