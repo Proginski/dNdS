@@ -25,7 +25,7 @@ if (params.help) {
 	log.info "Perfoms a dN/dS analysis using CODEML from PAML package."
 	log.info "Takes as input at least a FASTA A, some FASTA B(s) and a newick tree."
 	log.info "If no ortholog files are provided, it will use reciprocal best hits (RBH) as orthologs."
-	log.info paramsHelp("nextflow run proginski/dnds_full --A <A NUCL FASTA> --B <B NUCL FASTA(S)> --tree <NEWICK WITH A AND B(s)> --ctl_file <CODEML CTL FILE> --outdir <OUTDIR>")
+	log.info paramsHelp("nextflow run proginski/dnds --A <A NUCL FASTA> --B <B NUCL FASTA(S)> --tree <NEWICK WITH A AND B(s)> --ctl_file <CODEML CTL FILE> --outdir <OUTDIR>")
 	exit 0
 }
 
@@ -71,7 +71,7 @@ workflow DNDS {
 	// Produce of proper alignment file for each ORF and its orthologs.
 	FROM_ORTHO_PAIRS_TO_CODEML_INPUTS( ortho_ch )
 
-	// Provided a channel of paths with both tress and alignments, but ensuring matching tree and alignment are send to the same task.
+	// Provided a channel of paths with both trees and alignments, but ensuring matching tree and alignment are send to the same task.
 	codeml_inputs = FROM_ORTHO_PAIRS_TO_CODEML_INPUTS.out
 		.map( tuple -> [ tuple[1], tuple[2] ] ) // only keep tree and aln
 		.buffer( size: params.codeml_batch_size, remainder: true )
