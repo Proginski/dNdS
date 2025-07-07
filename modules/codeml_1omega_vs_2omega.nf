@@ -5,7 +5,7 @@ process CODEML_1OMEGA_VS_2OMEGA {
 	maxRetries 1
 	errorStrategy  { task.attempt <= maxRetries  ? 'retry' : 'ignore' }
 
-	publishDir "${params.outdir}/codeml_out/"
+	publishDir "${params.outdir}/codeml_out/models_raw"
 
 	input:
 		path ctl_file

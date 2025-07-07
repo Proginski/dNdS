@@ -54,6 +54,7 @@ include { CODEML_1OMEGA_VS_2OMEGA       	} from '../modules/codeml_1omega_vs_2om
 include { COLLECT_RESULTS_ONE_OMEGA         } from '../modules/collect_results_one_omega.nf'
 include { COLLECT_RESULTS_LYSIN_STYLE       } from '../modules/collect_results_lysin_style.nf'
 include { COLLECT_RESULTS_MODELS_0_1_2      } from '../modules/collect_results_models_0_1_2.nf'
+include { CORRECTION_BONFERRONI             } from '../modules/correction_bonferroni.nf'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -83,6 +84,9 @@ workflow DNDS {
 		CODEML_1OMEGA_VS_2OMEGA(
 			file(params.ctl_file),
 			codeml_inputs
+		)
+		CORRECTION_BONFERRONI(
+			CODEML_1OMEGA_VS_2OMEGA.out.collect()
 		)
 	}
 	else {
