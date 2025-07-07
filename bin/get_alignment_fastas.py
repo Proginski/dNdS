@@ -84,7 +84,7 @@ def process_entry(entry_id, entry_seq, focal_name, orthologs, neighbor_seqs, tre
             sequences[neighbor] = str(seq.seq)
             ortholog_names.add(neighbor)
         except KeyError:
-            logging.warning(f"Entry ID {ortho_id} not found in the fasta of {neighbor}.")
+            logging.warning(f"Entry ID {ortho_id} not found in the fasta of neighbor {neighbor}.")
             sys.exit(1)        
     
     # Check if all sequences are identical
@@ -145,6 +145,20 @@ def main():
 
     # Load orthologs from ortho files
     print("Loading orthologs...")
+    # Remove A_vs_A_orthologs.tsv from ortho_files if it exists
+    with open(args.name_mapping, 'r') as f:
+        for line in f:
+            cols = line.strip().split(',')
+            if cols[1] == focal_name:
+                focal_raw_name = cols[0]
+                break
+    A_vs_A_orthologs = f"{focal_raw_name}_vs_{focal_raw_name}_orthologs.tsv"
+    print(f"Checking for {A_vs_A_orthologs} in ortholog files...")
+    print(f"Ortholog files: {args.ortho}")
+    for ortho_file in args.ortho:
+        if os.path.basename(ortho_file) == A_vs_A_orthologs:
+            print(f"Removing {A_vs_A_orthologs} from ortholog files as it is not needed.")
+            args.ortho.remove(ortho_file)
     orthologs, ortholog_set = load_orthologs(args.ortho, ortho_files_to_names)
     print("Orthologs loaded")
 
@@ -166,7 +180,7 @@ def main():
                 entry_seq = focal_seqs[entry_id]
                 # Your existing code to process entry_seq
             except KeyError:
-                logging.warning(f"Entry ID {entry_id} not found in {args.fna_a}.")
+                logging.warning(f"Entry ID {entry_id} not found in focal {args.fna_a}.")
                 sys.exit(1)
             futures.append(executor.submit(process_entry, entry_id, entry_seq, focal_name, orthologs, neighbor_seqs, tree))
 
