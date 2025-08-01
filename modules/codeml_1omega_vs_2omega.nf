@@ -46,16 +46,14 @@ process CODEML_1OMEGA_VS_2OMEGA {
 		done
 
 		# From the alignment tree, generate mutiple trees.
-		i=0
 		# For each branch, a tree where this particular branch (foreground) has an omega different from the rest of the tree
 		# For each subtree, a tree where the subtree has an omega different from the rest of the tree
-		tree_two_omegas_combinaisons.py \$tree | while read tree_string
+		tree_two_omegas_combinaisons.py \$tree # Generate the trees with two omegas, named \${orf}_2omega_\${i}.nwk
+		for two_omega_tree in \${orf}_2omega_*.nwk
 		do
-			echo \$tree_string
-			i=\$((i+1))
-
-			# Write the tree to a file
-			echo \$tree_string > \${orf}_2omega_\${i}.nwk
+			echo "Processing tree \$two_omega_tree"
+			i=\$(echo "\${two_omega_tree}" | sed "s~.*_2omega_~~ ; s~.nwk\$~~")
+			echo "I is \$i"
 
 			# For each custom tree, run two models with 2 omegas 
 			# one where the foureground omega is fixed to 1
@@ -66,7 +64,7 @@ process CODEML_1OMEGA_VS_2OMEGA {
 				echo \$ctl
 
 				# Create a codeml control file for the alignment
-				sed "s~__ALN__~\${aln}~ ; s~__NWK__~\${orf}_2omega_\${i}.nwk~ ; s~__OUT__~\${orf}_\${ctl}_\${i}.out~ ; s~__TREE__~\$tree_string~" ${projectDir}/ctl/\${ctl}.ctl > \${orf}_\${ctl}_\${i}.ctl
+				sed "s~__ALN__~\${aln}~ ; s~__NWK__~\${orf}_2omega_\${i}.nwk~ ; s~__OUT__~\${orf}_\${ctl}_\${i}.out~ ; s~__TREE__~\${two_omega_tree}~" ${projectDir}/ctl/\${ctl}.ctl > \${orf}_\${ctl}_\${i}.ctl
 
 				# run codeml
 				codeml \${orf}_\${ctl}_\${i}.ctl

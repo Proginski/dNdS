@@ -1,14 +1,14 @@
 process CORRECTION_BONFERRONI {
 
 	publishDir "${params.outdir}/codeml_out/models_bonferroni_corrected", pattern: "*_models.tsv_bonferroni_corrected"
-	publishDir "${params.outdir}", pattern: "under_selection_bonferroni_corrected.tsv"
+	publishDir "${params.outdir}", pattern: "under_selection_bonferroni_corrected.txt"
 
 	input:
 		path models
 
 	output:
 		path "*_models.tsv_bonferroni_corrected"
-		path "under_selection_bonferroni_corrected.tsv"
+		path "under_selection_bonferroni_corrected.txt"
 
 	script:
 	"""
@@ -38,6 +38,6 @@ process CORRECTION_BONFERRONI {
 	done
 
 	touch under_selection_bonferroni_corrected.tsv
-	grep -c "true\$" *_models.tsv_bonferroni_corrected | awk -F":" '\$2>0 { print \$1 }' | sed 's/_models.tsv_bonferroni_corrected//g' > under_selection_bonferroni_corrected.tsv
+	grep -c "true\$" *_models.tsv_bonferroni_corrected | awk -F":" '\$2>0 { print \$1 }' | sed 's/_models.tsv_bonferroni_corrected//g' > under_selection_bonferroni_corrected.txt
 	"""
 }
